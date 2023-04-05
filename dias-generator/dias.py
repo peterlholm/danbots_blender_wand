@@ -1,6 +1,6 @@
 "Generate structured image"
 from pathlib import Path
-from math import cos, pi
+from math import cos, sin, pi
 from PIL import Image
 #from PIL.ExifTags import TAGS
 from PIL.PngImagePlugin import PngInfo
@@ -8,9 +8,14 @@ from PIL.PngImagePlugin import PngInfo
 XPAUTHOR = 40094
 XPTITLE = 40092
 IMAGEDESCRIPTION = 0x010e
+
 PICTURE_SIZE = 400
-FREQ = 17
-PIC_PR_PERIOD = PICTURE_SIZE / FREQ
+HIGH_PERCENT = 12/16.5      # procent of picture with stripes
+FREQ = 11                  # number of periods in visiple area
+PIC_PR_PERIOD = PICTURE_SIZE * HIGH_PERCENT / FREQ
+
+AMPLITUDE = (155-95)/256.0    #
+ZEROPOINT = 120/256.0         # middle of sinus
 PIXEL_COLOR = (0, 255, 0)
 DPI = 2400
 DPIXY = (DPI, DPI)
@@ -21,17 +26,23 @@ _DEBUG = False
 def create_dias(folder):
     "create the dias"
     grey = Image.new('L', (PICTURE_SIZE, PICTURE_SIZE))
-    greya = Image.new('LA', (PICTURE_SIZE, PICTURE_SIZE))
+    greya = Image.new('LA', (PICTURE_SIZE, PICTURE_SIZE),color=(0,255))
     rgb = Image.new('RGB', (PICTURE_SIZE, PICTURE_SIZE))
     rgba = Image.new('RGBA', (PICTURE_SIZE, PICTURE_SIZE))
+    print("Picture size: ",PICTURE_SIZE)
     print("Freq (pic/period", PIC_PR_PERIOD)
     print("MM pr periode", PIC_PR_PERIOD/DPI*INCH)
-    for y in range(PICTURE_SIZE):
-        val = y / PIC_PR_PERIOD * 2 * pi
-        intens = cos(val)
+    y_start = int(PICTURE_SIZE*(1-HIGH_PERCENT)/2)
+    y_end = PICTURE_SIZE-y_start
+    print("Y start/slut", y_start, y_end)
+    for y in range(y_start, y_end):
+        sval = (y-y_start) / PIC_PR_PERIOD * 2.0 * pi
+        intens = -cos(sval)
+        val = int((ZEROPOINT + AMPLITUDE*intens)*256)
+        #print(y,intens, val)
         #print(val, intens)
         for x in range(PICTURE_SIZE):
-            val = 128 + int(intens * 128)
+            #val = 128 + int(intens * 128)
             grey.putpixel((x, y), val)
             greya.putpixel((x, y), (0, val))
             color = (0, int((1-intens) * 128), 0)
@@ -76,6 +87,7 @@ def picture_size(imgfile):
 
 
 if __name__ == '__main__':
-    create_dias("tmp")
-    sz = picture_size('tmp/rgb.png')
+    folder = Path(__file__).parent / 'data'
+    create_dias(folder)
+    sz = picture_size(folder / 'rgb.png')
     print("Size (mm)", sz)
