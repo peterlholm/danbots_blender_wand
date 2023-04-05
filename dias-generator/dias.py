@@ -9,10 +9,15 @@ XPAUTHOR = 40094
 XPTITLE = 40092
 IMAGEDESCRIPTION = 0x010e
 
-PICTURE_SIZE = 400
+PICTURE_SIZE = 1400
+BORDER = 400
+PICTURE = PICTURE_SIZE-2*BORDER
 HIGH_PERCENT = 12/16.5      # procent of picture with stripes
+PICTURE_HIGHT = int(PICTURE * HIGH_PERCENT)
+Y_START = int((PICTURE-PICTURE_HIGHT)/2+BORDER)
+Y_END = Y_START+PICTURE_HIGHT
 FREQ = 11                  # number of periods in visiple area
-PIC_PR_PERIOD = PICTURE_SIZE * HIGH_PERCENT / FREQ
+PIC_PR_PERIOD = PICTURE * HIGH_PERCENT / FREQ
 
 AMPLITUDE = (155-95)/256.0    #
 ZEROPOINT = 120/256.0         # middle of sinus
@@ -32,16 +37,14 @@ def create_dias(folder):
     print("Picture size: ",PICTURE_SIZE)
     print("Freq (pic/period", PIC_PR_PERIOD)
     print("MM pr periode", PIC_PR_PERIOD/DPI*INCH)
-    y_start = int(PICTURE_SIZE*(1-HIGH_PERCENT)/2)
-    y_end = PICTURE_SIZE-y_start
-    print("Y start/slut", y_start, y_end)
-    for y in range(y_start, y_end):
-        sval = (y-y_start) / PIC_PR_PERIOD * 2.0 * pi
+    print("Y start/slut",Y_START, Y_END)
+    for y in range(Y_START, Y_END):
+        sval = (y-Y_START) / PIC_PR_PERIOD * 2.0 * pi
         intens = -cos(sval)
         val = int((ZEROPOINT + AMPLITUDE*intens)*256)
         #print(y,intens, val)
         #print(val, intens)
-        for x in range(PICTURE_SIZE):
+        for x in range(BORDER,PICTURE_SIZE-BORDER):
             #val = 128 + int(intens * 128)
             grey.putpixel((x, y), val)
             greya.putpixel((x, y), (0, val))
