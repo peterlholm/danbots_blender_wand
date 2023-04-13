@@ -9,5 +9,5 @@ run:
 	blender -o output wand.blend
 
 render:
-	blender -o output -b wand.blend -P render -- mydata
+	blender -b wand.blend --python-text Run -- objects
 	
